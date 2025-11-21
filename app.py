@@ -2,13 +2,29 @@ from flask import Flask, request, redirect, url_for, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 import os
+import urllib.parse
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///notes.db'
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "your_secret_key")
+
+# ================================
+# RAILWAY POSTGRES DATABASE
+# ================================
+username = urllib.parse.quote_plus(os.getenv("PGUSER", ""))
+password = urllib.parse.quote_plus(os.getenv("PGPASSWORD", ""))
+host = os.getenv("PGHOST", "")
+port = os.getenv("PGPORT", "5432")
+database = os.getenv("PGDATABASE", "")
+
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    f"postgresql://{username}:{password}@{host}:{port}/{database}"
+)
+
 db = SQLAlchemy(app)
 
+# ================================
 # Model for notes
+# ================================
 class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(500), nullable=False)
